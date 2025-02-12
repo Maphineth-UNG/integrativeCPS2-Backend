@@ -55,22 +55,30 @@ settings.gradle.kts
 src/main/java/com/emse/integrativecps2/config/WebSocketConfig.java
 src/main/java/com/emse/integrativecps2/controller/RuleController.java
 src/main/java/com/emse/integrativecps2/controller/SensorController.java
+src/main/java/com/emse/integrativecps2/controller/SensorRuleController.java
 src/main/java/com/emse/integrativecps2/controller/WeatherController.java
+src/main/java/com/emse/integrativecps2/controller/WeatherRuleController.java
 src/main/java/com/emse/integrativecps2/entity/Notification.java
 src/main/java/com/emse/integrativecps2/entity/Rule.java
 src/main/java/com/emse/integrativecps2/entity/SensorData.java
+src/main/java/com/emse/integrativecps2/entity/SensorRule.java
 src/main/java/com/emse/integrativecps2/entity/WeatherData.java
+src/main/java/com/emse/integrativecps2/entity/WeatherRule.java
 src/main/java/com/emse/integrativecps2/Integrativecps2Application.java
 src/main/java/com/emse/integrativecps2/model/RuleDto.java
 src/main/java/com/emse/integrativecps2/model/SensorDto.java
 src/main/java/com/emse/integrativecps2/repository/NotificationRepository.java
 src/main/java/com/emse/integrativecps2/repository/RuleRepository.java
 src/main/java/com/emse/integrativecps2/repository/SensorDataRepository.java
+src/main/java/com/emse/integrativecps2/repository/SensorRuleRepository.java
 src/main/java/com/emse/integrativecps2/repository/WeatherDataRepository.java
+src/main/java/com/emse/integrativecps2/repository/WeatherRuleRepository.java
 src/main/java/com/emse/integrativecps2/service/NotificationService.java
 src/main/java/com/emse/integrativecps2/service/RuleService.java
+src/main/java/com/emse/integrativecps2/service/SensorRuleService.java
 src/main/java/com/emse/integrativecps2/service/SensorService.java
 src/main/java/com/emse/integrativecps2/service/TimerService.java
+src/main/java/com/emse/integrativecps2/service/WeatherRuleService.java
 src/main/java/com/emse/integrativecps2/service/WeatherService.java
 src/main/resources/application.properties
 src/test/java/com/emse/integrativecps2/Integrativecps2ApplicationTests.java
@@ -176,6 +184,8 @@ dependencies {
 
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.postgresql:postgresql")
+
+	implementation("com.h2database:h2") // libs to use a H2 database
 
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
@@ -754,6 +764,37 @@ public class SensorController {
 }
 
 ================
+File: src/main/java/com/emse/integrativecps2/controller/SensorRuleController.java
+================
+package com.emse.integrativecps2.controller;
+
+import com.emse.integrativecps2.entity.SensorRule;
+import com.emse.integrativecps2.service.SensorRuleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/sensor/rules")
+public class SensorRuleController {
+
+    @Autowired
+    private SensorRuleService sensorRuleService;
+
+    @PostMapping
+    public String addSensorRule(@RequestBody SensorRule rule) {
+        sensorRuleService.addSensorRule(rule);
+        return "Sensor rule saved successfully!";
+    }
+
+    @GetMapping
+    public List<SensorRule> getAllSensorRules() {
+        return sensorRuleService.getAllSensorRules();
+    }
+}
+
+================
 File: src/main/java/com/emse/integrativecps2/controller/WeatherController.java
 ================
 //package com.emse.integrativecps2.controller;
@@ -840,6 +881,37 @@ public class WeatherController {
 }
 
 ================
+File: src/main/java/com/emse/integrativecps2/controller/WeatherRuleController.java
+================
+package com.emse.integrativecps2.controller;
+
+import com.emse.integrativecps2.entity.WeatherRule;
+import com.emse.integrativecps2.service.WeatherRuleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/weather/rules")
+public class WeatherRuleController {
+
+    @Autowired
+    private WeatherRuleService weatherRuleService;
+
+    @PostMapping
+    public String addWeatherRule(@RequestBody WeatherRule rule) {
+        weatherRuleService.addWeatherRule(rule);
+        return "Weather rule saved successfully!";
+    }
+
+    @GetMapping
+    public List<WeatherRule> getAllWeatherRules() {
+        return weatherRuleService.getAllWeatherRules();
+    }
+}
+
+================
 File: src/main/java/com/emse/integrativecps2/entity/Notification.java
 ================
 package com.emse.integrativecps2.entity;
@@ -910,6 +982,28 @@ public class SensorData {
 }
 
 ================
+File: src/main/java/com/emse/integrativecps2/entity/SensorRule.java
+================
+package com.emse.integrativecps2.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Entity
+@Data
+@Table(name = "sensor_rules")
+public class SensorRule {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String email;
+    private String triggerType; // e.g., "temperature", "humidity"
+    private String condition; // ">", "<", "=="
+    private double threshold;
+}
+
+================
 File: src/main/java/com/emse/integrativecps2/entity/WeatherData.java
 ================
 package com.emse.integrativecps2.entity;
@@ -933,6 +1027,28 @@ public class WeatherData {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime recordedAt = LocalDateTime.now();
+}
+
+================
+File: src/main/java/com/emse/integrativecps2/entity/WeatherRule.java
+================
+package com.emse.integrativecps2.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Entity
+@Data
+@Table(name = "weather_rules")
+public class WeatherRule {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String email;  // Email to send alerts
+    private String triggerType; // e.g., temperature, humidity
+    private String condition; // >, <, ==
+    private double threshold; // Setpoint value
 }
 
 ================
@@ -1055,6 +1171,19 @@ public interface SensorDataRepository extends JpaRepository<SensorData, Long> {
 }
 
 ================
+File: src/main/java/com/emse/integrativecps2/repository/SensorRuleRepository.java
+================
+package com.emse.integrativecps2.repository;
+
+import com.emse.integrativecps2.entity.SensorRule;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface SensorRuleRepository extends JpaRepository<SensorRule, Long> {
+}
+
+================
 File: src/main/java/com/emse/integrativecps2/repository/WeatherDataRepository.java
 ================
 package com.emse.integrativecps2.repository;
@@ -1065,6 +1194,19 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WeatherDataRepository extends JpaRepository<WeatherData, Long> {
+}
+
+================
+File: src/main/java/com/emse/integrativecps2/repository/WeatherRuleRepository.java
+================
+package com.emse.integrativecps2.repository;
+
+import com.emse.integrativecps2.entity.WeatherRule;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface WeatherRuleRepository extends JpaRepository<WeatherRule, Long> {
 }
 
 ================
@@ -1282,8 +1424,157 @@ public class RuleService {
 }
 
 ================
+File: src/main/java/com/emse/integrativecps2/service/SensorRuleService.java
+================
+package com.emse.integrativecps2.service;
+
+import com.emse.integrativecps2.entity.SensorRule;
+import com.emse.integrativecps2.entity.SensorData;
+import com.emse.integrativecps2.repository.SensorRuleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class SensorRuleService {
+
+    @Autowired
+    private SensorRuleRepository sensorRuleRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    public SensorRule addSensorRule(SensorRule rule) {
+        return sensorRuleRepository.save(rule);
+    }
+
+    public List<SensorRule> getAllSensorRules() {
+        return sensorRuleRepository.findAll();
+    }
+
+    public void evaluateSensorData(SensorData sensorData) {
+        List<SensorRule> rules = sensorRuleRepository.findAll();
+        for (SensorRule rule : rules) {
+            if (isConditionMet(rule, sensorData)) {
+                sendAlert(rule.getEmail(), rule.getTriggerType(), sensorData);
+            }
+        }
+    }
+
+    private boolean isConditionMet(SensorRule rule, SensorData sensorData) {
+        double value = switch (rule.getTriggerType()) {
+            case "temperature" -> sensorData.getTemperature();
+            case "humidity" -> sensorData.getHumidity();
+            case "airQuality" -> sensorData.getAirQuality();
+            default -> -1;
+        };
+
+        return switch (rule.getCondition()) {
+            case ">" -> value > rule.getThreshold();
+            case "<" -> value < rule.getThreshold();
+            case "==" -> value == rule.getThreshold();
+            default -> false;
+        };
+    }
+
+    private void sendAlert(String email, String triggerType, SensorData sensorData) {
+        String subject = "Sensor Alert: " + triggerType + " Condition Met";
+        String message = "The " + triggerType + " has reached the set threshold.\n\n" +
+                "Current Value: " + switch (triggerType) {
+            case "temperature" -> sensorData.getTemperature();
+            case "humidity" -> sensorData.getHumidity();
+            case "airQuality" -> sensorData.getAirQuality();
+            default -> "Unknown";
+        } +
+                "\nLocation: Sensor Device";
+
+        notificationService.sendEmail(email, subject, message);
+        System.out.println("📩 Email sent to " + email);
+    }
+}
+
+================
 File: src/main/java/com/emse/integrativecps2/service/SensorService.java
 ================
+//package com.emse.integrativecps2.service;
+//
+//import com.emse.integrativecps2.entity.SensorData;
+//import com.emse.integrativecps2.repository.SensorDataRepository;
+//import org.eclipse.californium.core.CoapClient;
+//import org.eclipse.californium.core.CoapResponse;
+//import org.eclipse.californium.elements.exception.ConnectorException;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.scheduling.annotation.Scheduled;
+//import org.springframework.stereotype.Service;
+//import com.fasterxml.jackson.databind.JsonNode;
+//import com.fasterxml.jackson.databind.ObjectMapper;
+//import java.io.IOException;
+//
+//@Service
+//public class SensorService {
+//
+//    @Autowired
+//    private SensorDataRepository sensorDataRepository;
+//
+//    @Autowired
+//    private RuleService ruleService;
+//
+//    private static final String COAP_ENDPOINT = "coap://192.168.101.163/sensor";
+//    private final CoapClient coapClient = new CoapClient(COAP_ENDPOINT);
+//    private final ObjectMapper objectMapper = new ObjectMapper();
+//
+//    /**
+//     * Fetches sensor data from the CoAP device and stores it in the database.
+//     */
+//    @Scheduled(fixedRate = 10000) // Fetch data every 10 seconds
+//    public void fetchAndProcessSensorData() {
+//        System.out.println("📡 Fetching sensor data from CoAP endpoint...");
+//        try {
+//            CoapResponse response = coapClient.get();
+//            if (response != null && response.isSuccess()) {
+//                String jsonResponse = response.getResponseText();
+//                SensorData sensorData = parseSensorData(jsonResponse);
+//                saveSensorData(sensorData);
+//                System.out.println("✅ Sensor data received and saved: " + jsonResponse);
+//            } else {
+//                System.err.println("⚠️ Warning: Failed to retrieve sensor data from CoAP server. Response is null or unsuccessful.");
+//            }
+//        } catch (ConnectorException e) {
+//            System.err.println("❌ CoAP ConnectorException: Could not connect to " + COAP_ENDPOINT);
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            System.err.println("❌ IOException: Error processing sensor data from CoAP.");
+//            e.printStackTrace();
+//        } catch (Exception e) {
+//            System.err.println("❌ Unexpected Error: " + e.getMessage());
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    /**
+//     * Parses the CoAP JSON response into a SensorData object.
+//     */
+//    private SensorData parseSensorData(String jsonResponse) throws IOException {
+//        JsonNode root = objectMapper.readTree(jsonResponse);
+//        SensorData sensorData = new SensorData();
+//        sensorData.setTemperature(root.get("temperature").asDouble());
+//        sensorData.setHumidity(root.get("humidity").asDouble());
+//        sensorData.setAirQuality(root.get("airQuality").asDouble());
+//        return sensorData;
+//    }
+//
+//    public SensorData saveSensorData(SensorData sensorData) {
+//        sensorDataRepository.save(sensorData);
+//        ruleService.evaluateRules(sensorData);
+//        return sensorData;
+//    }
+//
+//    public SensorData getLatestSensorData() {
+//        return sensorDataRepository.findAll().stream().reduce((first, second) -> second).orElse(null);
+//    }
+//}
+
 package com.emse.integrativecps2.service;
 
 import com.emse.integrativecps2.entity.SensorData;
@@ -1305,44 +1596,26 @@ public class SensorService {
     private SensorDataRepository sensorDataRepository;
 
     @Autowired
-    private RuleService ruleService;
+    private SensorRuleService sensorRuleService;
 
     private static final String COAP_ENDPOINT = "coap://192.168.101.163/sensor";
     private final CoapClient coapClient = new CoapClient(COAP_ENDPOINT);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Fetches sensor data from the CoAP device and stores it in the database.
-     */
-    @Scheduled(fixedRate = 10000) // Fetch data every 10 seconds
+    @Scheduled(fixedRate = 10000) // Fetch sensor data every 10s
     public void fetchAndProcessSensorData() {
         System.out.println("📡 Fetching sensor data from CoAP endpoint...");
-
         try {
             CoapResponse response = coapClient.get();
             if (response != null && response.isSuccess()) {
-                String jsonResponse = response.getResponseText();
-                SensorData sensorData = parseSensorData(jsonResponse);
+                SensorData sensorData = parseSensorData(response.getResponseText());
                 saveSensorData(sensorData);
-                System.out.println("✅ Sensor data received and saved: " + jsonResponse);
-            } else {
-                System.err.println("⚠️ Warning: Failed to retrieve sensor data from CoAP server. Response is null or unsuccessful.");
             }
-        } catch (ConnectorException e) {
-            System.err.println("❌ CoAP ConnectorException: Could not connect to " + COAP_ENDPOINT);
-            e.printStackTrace();
-        } catch (IOException e) {
-            System.err.println("❌ IOException: Error processing sensor data from CoAP.");
-            e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("❌ Unexpected Error: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("❌ Error retrieving sensor data: " + e.getMessage());
         }
     }
 
-    /**
-     * Parses the CoAP JSON response into a SensorData object.
-     */
     private SensorData parseSensorData(String jsonResponse) throws IOException {
         JsonNode root = objectMapper.readTree(jsonResponse);
         SensorData sensorData = new SensorData();
@@ -1354,12 +1627,16 @@ public class SensorService {
 
     public SensorData saveSensorData(SensorData sensorData) {
         sensorDataRepository.save(sensorData);
-        ruleService.evaluateRules(sensorData);
+        sensorRuleService.evaluateSensorData(sensorData);
         return sensorData;
     }
 
+    // Add getLatestSensorData() method
     public SensorData getLatestSensorData() {
-        return sensorDataRepository.findAll().stream().reduce((first, second) -> second).orElse(null);
+        return sensorDataRepository.findAll()
+                .stream()
+                .reduce((first, second) -> second)
+                .orElse(null);
     }
 }
 
@@ -1425,26 +1702,152 @@ public class TimerService {
 }
 
 ================
-File: src/main/java/com/emse/integrativecps2/service/WeatherService.java
+File: src/main/java/com/emse/integrativecps2/service/WeatherRuleService.java
 ================
 package com.emse.integrativecps2.service;
 
+import com.emse.integrativecps2.entity.WeatherRule;
+import com.emse.integrativecps2.entity.WeatherData;
+import com.emse.integrativecps2.repository.WeatherRuleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
+
+@Service
+public class WeatherRuleService {
+
+    @Autowired
+    private WeatherRuleRepository weatherRuleRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    public WeatherRule addWeatherRule(WeatherRule rule) {
+        return weatherRuleRepository.save(rule);
+    }
+
+    public List<WeatherRule> getAllWeatherRules() {
+        return weatherRuleRepository.findAll();
+    }
+
+    public void evaluateWeatherConditions(WeatherData weatherData) {
+        List<WeatherRule> rules = weatherRuleRepository.findAll();
+        for (WeatherRule rule : rules) {
+            if (isConditionMet(rule, weatherData)) {
+                sendAlert(rule.getEmail(), rule.getTriggerType(), weatherData);
+            }
+        }
+    }
+
+    private boolean isConditionMet(WeatherRule rule, WeatherData weatherData) {
+        double value = switch (rule.getTriggerType()) {
+            case "temperature" -> weatherData.getTemperature();
+            case "humidity" -> weatherData.getHumidity();
+            default -> -1;
+        };
+
+        return switch (rule.getCondition()) {
+            case ">" -> value > rule.getThreshold();
+            case "<" -> value < rule.getThreshold();
+            case "==" -> value == rule.getThreshold();
+            default -> false;
+        };
+    }
+
+    private void sendAlert(String email, String triggerType, WeatherData weatherData) {
+        String subject = "Weather Alert: " + triggerType + " Condition Met";
+        String message = "The " + triggerType + " has reached the set threshold.\n\n" +
+                "Current Value: " + (triggerType.equals("temperature") ? weatherData.getTemperature() : weatherData.getHumidity()) + "\n" +
+                "Location: " + weatherData.getLocation();
+        notificationService.sendEmail(email, subject, message);
+        System.out.println("📩 Email sent to " + email);
+    }
+}
+
+================
+File: src/main/java/com/emse/integrativecps2/service/WeatherService.java
+================
+//package com.emse.integrativecps2.service;
+//
+//import org.springframework.stereotype.Service;
+//import org.springframework.web.client.RestTemplate;
+//import org.springframework.web.util.UriComponentsBuilder;
+//import com.fasterxml.jackson.databind.JsonNode;
+//import com.fasterxml.jackson.databind.ObjectMapper;
+//import java.io.IOException;
+//
+//@Service
+//public class WeatherService {
+//
+//    private final String API_KEY = "a1b64b3b5cf5cf7a8ec89534a511dd37"; // Replace with your actual OpenWeather API key
+//    private final RestTemplate restTemplate = new RestTemplate();
+//    private final ObjectMapper objectMapper = new ObjectMapper();
+//
+//    public String getCurrentWeather(String location) throws IOException {
+//        // Split latitude and longitude from the location string (assuming "lat,lon" format)
+//        String[] latLon = location.split(",");
+//        if (latLon.length != 2) {
+//            throw new IllegalArgumentException("Location must be in 'lat,lon' format");
+//        }
+//
+//        String lat = latLon[0].trim();
+//        String lon = latLon[1].trim();
+//
+//        // Construct correct OpenWeather API URL
+//        String url = UriComponentsBuilder.fromHttpUrl("https://api.openweathermap.org/data/2.5/weather")
+//                .queryParam("lat", lat)
+//                .queryParam("lon", lon)
+//                .queryParam("appid", API_KEY)  // Use 'appid' instead of 'apiKey'
+//                .queryParam("units", "metric") // Returns temperature in Celsius
+//                .toUriString();
+//
+//        // Debugging: Print URL
+//        System.out.println("Fetching weather data from: " + url);
+//
+//        // Make API request
+//        String response = restTemplate.getForObject(url, String.class);
+//
+//        // Parse JSON response
+//        JsonNode root = objectMapper.readTree(response);
+//
+//        return root.toString(); // Return JSON response
+//    }
+//}
+
+
+package com.emse.integrativecps2.service;
+
+import com.emse.integrativecps2.entity.WeatherData;
+import com.emse.integrativecps2.repository.WeatherDataRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import java.io.IOException;
 
 @Service
 public class WeatherService {
 
-    private final String API_KEY = "a1b64b3b5cf5cf7a8ec89534a511dd37"; // Replace with your actual OpenWeather API key
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final String API_KEY = "a1b64b3b5cf5cf7a8ec89534a511dd37"; // Replace with actual OpenWeather API key
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Autowired
+    private WeatherDataRepository weatherDataRepository;
+
+    @Autowired
+    private WeatherRuleService weatherRuleService; // Injected Weather Rule Service
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    private String currentLocation = "45.758,4.832"; // Default location
+
     public String getCurrentWeather(String location) throws IOException {
-        // Split latitude and longitude from the location string (assuming "lat,lon" format)
         String[] latLon = location.split(",");
         if (latLon.length != 2) {
             throw new IllegalArgumentException("Location must be in 'lat,lon' format");
@@ -1453,24 +1856,44 @@ public class WeatherService {
         String lat = latLon[0].trim();
         String lon = latLon[1].trim();
 
-        // Construct correct OpenWeather API URL
         String url = UriComponentsBuilder.fromHttpUrl("https://api.openweathermap.org/data/2.5/weather")
                 .queryParam("lat", lat)
                 .queryParam("lon", lon)
-                .queryParam("appid", API_KEY)  // Use 'appid' instead of 'apiKey'
-                .queryParam("units", "metric") // Returns temperature in Celsius
+                .queryParam("appid", API_KEY)
+                .queryParam("units", "metric") // Celsius
                 .toUriString();
 
-        // Debugging: Print URL
-        System.out.println("Fetching weather data from: " + url);
+        String response = new org.springframework.web.client.RestTemplate().getForObject(url, String.class);
 
-        // Make API request
-        String response = restTemplate.getForObject(url, String.class);
+        WeatherData weatherData = parseWeatherData(response);
+        weatherDataRepository.save(weatherData);
 
-        // Parse JSON response
-        JsonNode root = objectMapper.readTree(response);
+        // Evaluate rules
+        weatherRuleService.evaluateWeatherConditions(weatherData);
 
-        return root.toString(); // Return JSON response
+        return response; // Return raw JSON response
+    }
+
+    @Scheduled(fixedRate = 10000) // Fetch and check weather every 10s
+    public void sendWeatherUpdates() throws IOException {
+        String weatherJson = getCurrentWeather(currentLocation);
+        WeatherData weatherData = parseWeatherData(weatherJson);
+
+        // Evaluate stored weather rules
+        weatherRuleService.evaluateWeatherConditions(weatherData);
+
+        // Send data to WebSocket
+        messagingTemplate.convertAndSend("/topic/weather", weatherJson);
+    }
+
+    private WeatherData parseWeatherData(String jsonResponse) throws IOException {
+        JsonNode root = objectMapper.readTree(jsonResponse);
+        WeatherData weatherData = new WeatherData();
+        weatherData.setLocation(currentLocation);
+        weatherData.setTemperature(root.get("main").get("temp").asDouble());
+        weatherData.setHumidity(root.get("main").get("humidity").asDouble());
+        weatherData.setWeatherDescription(root.get("weather").get(0).get("description").asText());
+        return weatherData;
     }
 }
 
@@ -1488,16 +1911,26 @@ spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 spring.mail.properties.mail.debug=true
 
-# Database Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/integrativecps2
-spring.datasource.username=postgres
-spring.datasource.password=1234
-spring.datasource.driver-class-name=org.postgresql.Driver
+## Database Configuration
+#spring.datasource.url=jdbc:postgresql://localhost:5432/integrativecps2
+#spring.datasource.username=postgres
+#spring.datasource.password=1234
+#spring.datasource.driver-class-name=org.postgresql.Driver
+#
+## Hibernate Configuration
+#spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+#spring.jpa.hibernate.ddl-auto=update
+#spring.jpa.show-sql=true
 
-# Hibernate Configuration
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
+# Spring boot : configure H2 datasource
+spring.datasource.url=jdbc:h2:mem:integrativecps2;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.username=sa
+spring.datasource.password=
+spring.datasource.driverClassName=org.h2.Driver
+
+# Spring boot : activate H2 console
+spring.h2.console.enabled=true
+spring.h2.console.path=/console
 
 ================
 File: src/test/java/com/emse/integrativecps2/Integrativecps2ApplicationTests.java
