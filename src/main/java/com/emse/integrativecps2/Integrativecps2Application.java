@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
-//@EnableScheduling // Enable scheduled rule evaluations
+@EnableScheduling // Enable scheduled rule evaluations for project
 public class Integrativecps2Application {
 	public static void main(String[] args) {
 		SpringApplication.run(Integrativecps2Application.class, args);
